@@ -40,7 +40,17 @@ fun SmartFrameApp(viewModel: BluetoothSettingViewModel) {
 					)
 				}
 			) {
-				HomeScreen(viewModel)
+				HomeScreen(
+					viewModel = viewModel,
+					onclick = {
+						scope.launch {
+							state.animateTo(
+								ModalBottomSheetValue.Expanded,
+								tween(500)
+							)
+						}
+					}
+				)
 				it
 			}
 		}

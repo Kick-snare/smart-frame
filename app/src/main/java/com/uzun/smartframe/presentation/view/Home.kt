@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -27,17 +28,30 @@ import com.uzun.smartframe._constant.UIConst.HEIGHT_TOPAPPBAR
 import com.uzun.smartframe.presentation.viewmodel.BluetoothSettingViewModel
 
 @Composable
-fun HomeScreen(viewModel: BluetoothSettingViewModel) {
+fun HomeScreen(
+	viewModel: BluetoothSettingViewModel,
+	onclick: () -> Unit = {},
+) {
 	HomeScreenBackground {
 		HomeScreenContent {
-			// 조도 온도 습도 감지여부 초음파
-			val text = viewModel.putTxt.observeAsState("")
-			var list: List<Double>? = null
-			if(text.value.isNotBlank()) list = text.value.split(",")?.map { it.toDouble() }
+			if(viewModel.btnConnected.get()) {
+				// 조도 온도 습도 감지여부 초음파
+				val text = viewModel.putTxt.observeAsState("")
+				var list: List<Double>? = null
+				if(text.value.isNotBlank()) list = text.value.split(",")?.map { it.toDouble() }
 
-			if(list != null && list.size >= 3) RealtimeStatus(list[0], list[1], list[2])
-			else RealtimeStatus(0.0,0.0,0.0)
-			AlarmLog()
+				if(list != null && list.size >= 3) RealtimeStatus(list[0], list[1], list[2])
+				else RealtimeStatus(0.0,0.0,0.0)
+				AlarmLog()
+			}
+			else {
+				RealtimeStatus(0.0,0.0,0.0,)
+				Button(
+					onClick = onclick,
+				) {
+					Text("블루투스를 연결해주세요")
+				}
+			}
 		}
 	}
 }
@@ -78,7 +92,6 @@ fun AlarmLog() {
 			}
 		}
 	}
-
 }
 
 @Composable
@@ -125,6 +138,7 @@ fun RealtimeStatus(
 	temp: Double = 0.0,
 	lumi: Double = 0.0,
 	humi: Double = 0.0,
+	title: String = "Real Time Status",
 ) {
 	Column(
 		modifier = Modifier
@@ -144,7 +158,7 @@ fun RealtimeStatus(
 					clip = true
 				)
 		) {
-			HomeText("Real Time Status", 20.sp, Color.White)
+			HomeText(title, 20.sp, Color.White)
 		}
 		Column(
 			modifier = Modifier
@@ -214,7 +228,8 @@ fun HomeScreenContent(
 			.padding(horizontal = 18.dp)
 			.padding(vertical = 18.dp)
 			.fillMaxSize(),
-		verticalArrangement = Arrangement.spacedBy(20.dp)
+		verticalArrangement = Arrangement.spacedBy(20.dp),
+		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 		content()
 	}
