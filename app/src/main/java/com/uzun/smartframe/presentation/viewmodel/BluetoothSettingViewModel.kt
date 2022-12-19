@@ -1,5 +1,9 @@
 package com.uzun.smartframe.presentation.viewmodel
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.databinding.ObservableBoolean
 import androidx.databinding.ObservableField
 import androidx.lifecycle.LiveData
@@ -19,9 +23,12 @@ class BluetoothSettingViewModel(private val repository: Repository): ViewModel()
 		get() = repository.connected
 	val progressState: LiveData<String>
 		get() = repository.progressState
-	var btnConnected = ObservableBoolean(false)
+
+	var _btnConnected = mutableStateOf(false)
+	val btnConnected : State<Boolean> = _btnConnected
 
 	var inProgressView = ObservableBoolean(false)
+
 	var txtProgress: ObservableField<String> = ObservableField("")
 
 	private val _requestBleOn = MutableLiveData<Event<Boolean>>()
@@ -34,14 +41,20 @@ class BluetoothSettingViewModel(private val repository: Repository): ViewModel()
 	val connectError: LiveData<Event<Boolean>>
 		get() = repository.connectError
 
-	val txtRead: ObservableField<String> = ObservableField("")
-	val putTxt: LiveData<String> = repository.putTxt
+	val stateData: LiveData<List<Double>?>
+		get() = repository.stateData
+	val valueData: LiveData<List<Double>?>
+		get() = repository.valueData
 
 	private val _state = MutableStateFlow<String>("")
 	val state: StateFlow<String> = _state
 
 	fun setInProgress(en: Boolean) {
 		repository.inProgress.value = Event(en)
+	}
+
+	fun btnConnect(on: Boolean) {
+		_btnConnected.value = on
 	}
 
 	fun onClickConnect() {

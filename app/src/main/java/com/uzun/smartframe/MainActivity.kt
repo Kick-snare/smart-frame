@@ -111,11 +111,11 @@ class MainActivity : ComponentActivity() {
 			if (it != null) {
 				if (it) {
 					viewModel.setInProgress(false)
-					viewModel.btnConnected.set(true)
+					viewModel.btnConnect(true)
 					Util.showNotification("디바이스와 연결되었습니다.")
 				} else {
 					viewModel.setInProgress(false)
-					viewModel.btnConnected.set(false)
+					viewModel.btnConnect(false)
 					Util.showNotification("디바이스와 연결이 해제되었습니다.")
 				}
 			}

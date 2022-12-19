@@ -27,7 +27,8 @@ import java.util.*
 class Repository {
 	var connected: MutableLiveData<Boolean?> = MutableLiveData(null)
 	var progressState: MutableLiveData<String> = MutableLiveData("")
-	val putTxt: MutableLiveData<String> = MutableLiveData("")
+	val valueData: MutableLiveData<List<Double>?> = MutableLiveData(emptyList())
+	val stateData: MutableLiveData<List<Double>?> = MutableLiveData(emptyList())
 	var dataString = ""
 
 
@@ -283,22 +284,30 @@ class Repository {
 
 
 							val s = String(packetBytes,Charsets.UTF_8)
+//							Log.d("input: ", String.format("%s", s))
 
-							if(s == "}") {
-								putTxt.postValue(dataString)
-								dataString = ""
+							for (c in s) {
+								if(s.isNullOrBlank()) break
+								if(c.equals('{')) dataString = ""
+								else if (c.equals('}')) {
+									if(dataString.isEmpty()) break
+									val value : String? = dataString.substring(2, dataString.length-1)
+									if(value.isNullOrBlank()) break
+									var list = value?.split(",")?.map { it -> if(it.isNullOrBlank()) 0.0 else it.toDouble() }
+
+									if(dataString.startsWith('s')) {
+										stateData.postValue(list)
+										Log.d("State: ", String.format("%s", list.toString()))
+									}
+									else if(dataString.startsWith('v')) {
+										valueData.postValue(list)
+										Log.d("Value: ", String.format("%s", list.toString()))
+									}
+								} else {
+									dataString += c
+								}
 							}
-							else if(s == "{") dataString = ""
-							else if (dataString.isNotEmpty()) dataString += s
 
-							/**
-							 * 한 바이트씩 처리
-							 */
-
-							for (i in 0 until bytesAvailable) {
-								val b = packetBytes[i]
-								Log.d("inputData", String.format("%02x %s", b, b))
-							}
 						}
 					}
 				} catch (e: UnsupportedEncodingException) {
@@ -310,14 +319,5 @@ class Repository {
 		}
 		//데이터 수신 thread 시작
 		mWorkerThread.start()
-	}
-
-	fun dataFlow() : Flow<String> = flow {
-		try {
-			putTxt.value?.let { emit(it) }
-		} catch(e: IOException) {
-			Log.d("flow", "Couldn't reach server. Check your internet connection.")
-			emit("error")
-		}
 	}
 }

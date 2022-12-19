@@ -1,15 +1,13 @@
 package com.uzun.smartframe.presentation.view
 
+import android.widget.ToggleButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
@@ -34,18 +32,47 @@ fun HomeScreen(
 ) {
 	HomeScreenBackground {
 		HomeScreenContent {
-			if(viewModel.btnConnected.get()) {
+			if (viewModel.btnConnected.value) {
 				// 조도 온도 습도 감지여부 초음파
-				val text = viewModel.putTxt.observeAsState("")
-				var list: List<Double>? = null
-				if(text.value.isNotBlank()) list = text.value.split(",")?.map { it.toDouble() }
 
-				if(list != null && list.size >= 3) RealtimeStatus(list[0], list[1], list[2])
-				else RealtimeStatus(0.0,0.0,0.0)
+				val valueData = viewModel.valueData.observeAsState()
+
+				if(valueData.value?.isNotEmpty() == true) {
+					RealtimeStatus(
+						viewModel.valueData.value?.get(2) ?: 0.0,
+						((1 - viewModel.valueData.value?.get(0)?.div(4096.0)!!) * 100) ?: 0.0,
+						(viewModel.valueData.value?.get(3)) ?: 0.0,
+					)
+				} else {
+					RealtimeStatus(0.0,0.0,0.0)
+				}
+
+				Row(
+					modifier = Modifier,
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.Center,
+				) {
+					Text("보안모드 ON/OFF")
+					val mCheckedState = remember { mutableStateOf(false) }
+					Switch(checked = mCheckedState.value, onCheckedChange = {
+						mCheckedState.value = it
+						viewModel.onClickSendData(if(it) "1" else "0")
+					})
+
+
+					Button(
+						onClick = {
+							viewModel.onClickSendData("2")
+						},
+					) {
+						Text("스피커 OFF")
+					}
+				}
 				AlarmLog()
-			}
-			else {
-				RealtimeStatus(0.0,0.0,0.0,)
+			} else {
+				RealtimeStatus()
+
+				Spacer(modifier = Modifier.size(50.dp))
 				Button(
 					onClick = onclick,
 				) {
@@ -175,7 +202,7 @@ fun RealtimeStatus(
 			) {
 				RealtimeItem("습도", "%", humi)
 				RealtimeItem("온도", "도", temp)
-				RealtimeItem("조도", "lux", lumi)
+				RealtimeItem("조도", "%", lumi)
 			}
 		}
 	}
@@ -200,7 +227,7 @@ fun RealtimeItem(
 			modifier = Modifier.size(80.dp)
 		) {
 			Box(contentAlignment = Alignment.Center) {
-				HomeText(text = "$value$unit")
+				HomeText(text = "${String.format("%.0f", value).toDouble()}$unit")
 			}
 		}
 	}
