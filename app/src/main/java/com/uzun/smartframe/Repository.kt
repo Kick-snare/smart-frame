@@ -28,7 +28,8 @@ class Repository {
 	var connected: MutableLiveData<Boolean?> = MutableLiveData(null)
 	var progressState: MutableLiveData<String> = MutableLiveData("")
 	val valueData: MutableLiveData<List<Double>?> = MutableLiveData(emptyList())
-	val stateData: MutableLiveData<List<Double>?> = MutableLiveData(emptyList())
+	val stateData: MutableLiveData<MutableList<Long>?> = MutableLiveData()
+	val eventList: MutableList<Long>? = emptyList<Long>().toMutableList()
 	var dataString = ""
 
 
@@ -296,8 +297,12 @@ class Repository {
 									var list = value?.split(",")?.map { it -> if(it.isNullOrBlank()) 0.0 else it.toDouble() }
 
 									if(dataString.startsWith('s')) {
-										stateData.postValue(list)
 										Log.d("State: ", String.format("%s", list.toString()))
+										if(list?.get(1) == 1.0) {
+											eventList?.add(System.currentTimeMillis())
+											Log.d("event", "${eventList}")
+											stateData.postValue(eventList)
+										}
 									}
 									else if(dataString.startsWith('v')) {
 										valueData.postValue(list)

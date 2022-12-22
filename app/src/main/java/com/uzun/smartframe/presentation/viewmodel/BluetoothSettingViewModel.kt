@@ -41,7 +41,7 @@ class BluetoothSettingViewModel(private val repository: Repository): ViewModel()
 	val connectError: LiveData<Event<Boolean>>
 		get() = repository.connectError
 
-	val stateData: LiveData<List<Double>?>
+	val stateData: MutableLiveData<MutableList<Long>?>
 		get() = repository.stateData
 	val valueData: LiveData<List<Double>?>
 		get() = repository.valueData

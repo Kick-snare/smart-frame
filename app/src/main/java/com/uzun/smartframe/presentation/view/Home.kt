@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.sp
 import com.uzun.smartframe.SmartFrameApp.SmartFrameApp
 import com.uzun.smartframe._constant.UIConst.HEIGHT_TOPAPPBAR
 import com.uzun.smartframe.presentation.viewmodel.BluetoothSettingViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun HomeScreen(
@@ -53,22 +55,22 @@ fun HomeScreen(
 					horizontalArrangement = Arrangement.Center,
 				) {
 					Text("보안모드 ON/OFF")
+					Spacer(Modifier.size(20.dp))
 					val mCheckedState = remember { mutableStateOf(false) }
 					Switch(checked = mCheckedState.value, onCheckedChange = {
 						mCheckedState.value = it
-						viewModel.onClickSendData(if(it) "1" else "0")
+						viewModel.onClickSendData(if(it) "x" else "y")
 					})
-
 
 					Button(
 						onClick = {
-							viewModel.onClickSendData("2")
+							viewModel.onClickSendData("z")
 						},
 					) {
 						Text("스피커 OFF")
 					}
 				}
-				AlarmLog()
+				viewModel.stateData.value?.let { AlarmLog(it) }
 			} else {
 				RealtimeStatus()
 
@@ -87,7 +89,9 @@ fun HomeScreen(
 /*** ALARM COMPOSABLE ***/
 
 @Composable
-fun AlarmLog() {
+fun AlarmLog(
+	timestamps: MutableList<Long> = emptyList<Long>().toMutableList(),
+) {
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -114,33 +118,43 @@ fun AlarmLog() {
 				.padding(horizontal = 20.dp)
 				.padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
 		) {
-			repeat(8) {
-				item { AlarmItem() }
-			}
+			for (timestamp in timestamps)
+				item { AlarmItem(timestamp) }
 		}
 	}
 }
 
 @Composable
-fun AlarmItem() {
+fun AlarmItem(
+	timestamp: Long,
+) {
 	Row(
 		modifier = Modifier.height(60.dp),
 	) {
 		AlarmIcon()
-		AlarmContent()
+		AlarmContent(timestamp)
 	}
 }
 
+
+fun convertTimestampToDate(timestamp: Long): String {
+	val sdf = SimpleDateFormat("hh시 mm분 ss초")
+	val date = sdf.format(timestamp)
+	return date
+}
+
 @Composable
-fun AlarmContent() {
+fun AlarmContent(
+	timestamp: Long,
+) {
 	Row(
 		modifier = Modifier
 			.padding(10.dp)
 			.fillMaxWidth()
 	) {
 		Column() {
-			HomeText("title", 18.sp)
-			HomeText("contentcontentntcontent", 15.sp)
+			HomeText("보안 경고!", 17.sp)
+			HomeText("${convertTimestampToDate(timestamp)}에 움직임이 감지됨", 14.sp)
 		}
 	}
 }
